@@ -3,21 +3,21 @@
   "name": "warungku-bot",
   "builds": [
     {
-      "src": "app/main.py",
+      "src": "api.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "app/main.py"
+      "dest": "api.py"
     }
   ],
   "env": {
     "PYTHON_VERSION": "3.11"
   },
   "functions": {
-    "app/main.py": {
+    "api.py": {
       "maxDuration": 30
     }
   }
