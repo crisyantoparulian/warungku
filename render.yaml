@@ -10,39 +10,30 @@ services:
       - key: PYTHON_VERSION
         value: 3.11
 
-      # Supabase Configuration
+      # Supabase Configuration (set these in Render dashboard)
       - key: SUPABASE_URL
         sync: false
-        value: https://bplxlhiqkuxtyckudthn.supabase.co
       - key: SUPABASE_KEY
         sync: false
-        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwbHhsaGlxa3V4dHlja3VkdGhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjUyMjksImV4cCI6MjA3NzU0MTIyOX0.DfV8zls834Tza_oJ2pJrowj6bd6trG15reoCwSQebo0
 
-      # Telegram Bot Configuration
+      # Telegram Bot Configuration (set these in Render dashboard)
       - key: TELEGRAM_BOT_TOKEN
         sync: false
-        value: 7074769580:AAFdgCm0AfAeFPkMuiFcKOGmYOl8X1CC5iM
       - key: TELEGRAM_ADMIN_USER_IDS
         sync: false
-        value: 462310169
 
-      # LLM Configuration (GLM)
+      # LLM Configuration (GLM) (set these in Render dashboard)
       - key: GLM_API_KEY
         sync: false
-        value: cbc092bf29844308815e0b5df30beaf0.RzPIzv9natzqarsO
       - key: GLM_BASE_URL
         sync: false
-        value: https://api.z.ai/api/anthropic
 
       # FastAPI Configuration
       - key: APP_SECRET_KEY
-        sync: false
-        value: 8cwl3lKKGpCUaguoF2WYm9LrLS7quZ12C6FKD3lXq98
+        generateValue: true
       - key: API_SECRET_KEY
-        sync: false
-        value: 8cwl3lKKGpCUaguoF2WYm9LrLS7quZ12C6FKD3lXq98
+        generateValue: true
       - key: DEBUG
-        sync: false
         value: false
 
     # Health check
