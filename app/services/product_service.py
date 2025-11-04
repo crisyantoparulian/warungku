@@ -15,8 +15,10 @@ class ProductService:
 
         if product:
             unit_text = f" per {product.unit}" if product.unit else ""
-            result = f"Harga {product.name} (ID: {product.id}) saat ini adalah {product.price:,} {unit_text}."
+            product_id = product.id if product.id else "Unknown"
+            result = f"Harga {product.name} (ID: {product_id}) saat ini adalah {product.price:,} {unit_text}."
             print(f"💰 Price query result: {result}")
+            print(f"🔍 Product details: ID={product.id}, Name={product.name}, Price={product.price}")
             return result
         else:
             result = f"Produk '{product_name}' tidak ditemukan di database."
@@ -105,7 +107,9 @@ class ProductService:
             response_text = f"Ditemukan {len(products)} produk:\n\n"
             for product in products:
                 unit_text = f" per {product.unit}" if product.unit else ""
-                response_text += f"• {product.name} (ID: {product.id}): {product.price:,} {unit_text}\n"
+                product_id = product.id if product.id else "Unknown"
+                response_text += f"• {product.name} (ID: {product_id}): {product.price:,} {unit_text}\n"
+                print(f"📦 Product in search: ID={product.id}, Name={product.name}")
 
             print(f"🔍 Search result: {response_text}")
             return response_text

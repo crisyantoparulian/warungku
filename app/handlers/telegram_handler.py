@@ -55,6 +55,8 @@ class TelegramHandler:
                 str(telegram_message.from_id)
             )
 
+            print(f"📱 Sending to Telegram: {response_text}")
+
             # Send response back to Telegram
             await self._send_message(telegram_message.chat_id, response_text)
 
