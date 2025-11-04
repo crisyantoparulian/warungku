@@ -105,13 +105,18 @@ Contoh:
             )
 
             llm_response = response.choices[0].message.content.strip()
+            print(f"🤖 LLM Response: {llm_response}")
 
             # Try to parse JSON
             try:
                 action_data = json.loads(llm_response)
-                return await self._execute_action(action_data, user_id)
-            except json.JSONDecodeError:
-                print(f"Invalid JSON from LLM: {llm_response}")
+                print(f"📋 Parsed Action: {action_data}")
+                result = await self._execute_action(action_data, user_id)
+                print(f"✅ Final Result: {result}")
+                return result
+            except json.JSONDecodeError as e:
+                print(f"❌ Invalid JSON from LLM: {llm_response}")
+                print(f"🔍 JSON Error: {e}")
                 return None
 
         except Exception as e:
@@ -225,4 +230,5 @@ Contoh:
                 return await self.product_service.update_product_by_id(product_id, price, unit, user_id)
 
         # Default response
+        print(f"🔄 Using fallback interpretation for: {message_lower}")
         return "Maaf, saya tidak mengerti permintaan Anda. Silakan coba dengan format seperti:\n\n• 'berapa harga minyak'\n• 'ubah harga minyak 4000'\n• 'update id 123 harga 4000'\n• 'ubah id 45 harga 5000 per kg'\n• 'tambah gula 17000 per kg'\n• 'hapus produk beras'\n• 'cari produk minyak'\n\n• Semua produk sekarang menampilkan ID untuk memudahkan update"

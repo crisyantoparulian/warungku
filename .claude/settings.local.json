@@ -4,7 +4,8 @@
       "Bash(printf:*)",
       "Bash(vercel env add:*)",
       "Bash(vercel:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

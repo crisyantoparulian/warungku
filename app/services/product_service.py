@@ -15,9 +15,13 @@ class ProductService:
 
         if product:
             unit_text = f" per {product.unit}" if product.unit else ""
-            return f"Harga {product.name} (ID: {product.id}) saat ini adalah {product.price:,} {unit_text}."
+            result = f"Harga {product.name} (ID: {product.id}) saat ini adalah {product.price:,} {unit_text}."
+            print(f"💰 Price query result: {result}")
+            return result
         else:
-            return f"Produk '{product_name}' tidak ditemukan di database."
+            result = f"Produk '{product_name}' tidak ditemukan di database."
+            print(f"❌ Product not found: {result}")
+            return result
 
     async def update_product_price(self, product_name: str, new_price: int, unit: Optional[str] = None, user_id: Optional[str] = None) -> str:
         """
@@ -77,9 +81,13 @@ class ProductService:
 
             if product:
                 unit_text = f" per {product.unit}" if product.unit else ""
-                return f"Harga {product.name} (ID: {product.id}) berhasil diperbarui menjadi {new_price:,} {unit_text}."
+                result = f"Harga {product.name} (ID: {product.id}) berhasil diperbarui menjadi {new_price:,} {unit_text}."
+                print(f"✅ ID-based update result: {result}")
+                return result
             else:
-                return f"Produk dengan ID {product_id} tidak ditemukan."
+                result = f"Produk dengan ID {product_id} tidak ditemukan."
+                print(f"❌ ID not found: {result}")
+                return result
 
         except Exception as e:
             return f"Terjadi kesalahan saat memperbarui produk: {str(e)}"
@@ -99,6 +107,7 @@ class ProductService:
                 unit_text = f" per {product.unit}" if product.unit else ""
                 response_text += f"• {product.name} (ID: {product.id}): {product.price:,} {unit_text}\n"
 
+            print(f"🔍 Search result: {response_text}")
             return response_text
 
         except Exception as e:
