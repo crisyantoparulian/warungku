@@ -138,6 +138,54 @@ class SupabaseService:
             print(f"Error deleting product: {e}")
             return False
 
+    async def update_product_by_id(self, product_id: int, price: int, unit: Optional[str] = None, user_id: Optional[str] = None) -> Optional[Product]:
+        """Update product by ID"""
+        try:
+            async with httpx.AsyncClient() as client:
+                # First get the existing product for audit
+                get_response = await client.get(
+                    f"{self.supabase_url}/rest/v1/products",
+                    params={"id": f"eq.{product_id}", "limit": 1},
+                    headers=self.headers
+                )
+
+                if get_response.status_code != 200 or not get_response.json():
+                    return None
+
+                existing_product = Product(**get_response.json()[0])
+
+                # Update the product
+                response = await client.patch(
+                    f"{self.supabase_url}/rest/v1/products",
+                    params={"id": f"eq.{product_id}"},
+                    json={"price": price, "unit": unit},
+                    headers=self.headers
+                )
+
+                if response.status_code == 200 and response.json():
+                    updated_product = Product(**response.json()[0])
+
+                    # Log the update
+                    await self._log_audit(
+                        product_id=product_id,
+                        action_type="UPDATE_BY_ID",
+                        details={
+                            "old_price": existing_product.price,
+                            "new_price": price,
+                            "old_unit": existing_product.unit,
+                            "new_unit": unit
+                        },
+                        requested_by=user_id
+                    )
+
+                    return updated_product
+
+                return None
+
+        except Exception as e:
+            print(f"Error updating product by ID: {e}")
+            return None
+
     async def search_products(self, query: str) -> List[Product]:
         """Search products by name (case-insensitive partial match)"""
         try:

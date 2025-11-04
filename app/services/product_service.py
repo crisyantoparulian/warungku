@@ -15,7 +15,7 @@ class ProductService:
 
         if product:
             unit_text = f" per {product.unit}" if product.unit else ""
-            return f"Harga {product.name} saat ini adalah {product.price:,} {unit_text}."
+            return f"Harga {product.name} (ID: {product.id}) saat ini adalah {product.price:,} {unit_text}."
         else:
             return f"Produk '{product_name}' tidak ditemukan di database."
 
@@ -36,7 +36,7 @@ class ProductService:
             )
 
             unit_text = f" per {product.unit}" if product.unit else ""
-            return f"Harga {product.name} berhasil diperbarui menjadi {new_price:,} {unit_text}."
+            return f"Harga {product.name} (ID: {product.id}) berhasil diperbarui menjadi {new_price:,} {unit_text}."
 
         except Exception as e:
             return f"Terjadi kesalahan saat memperbarui produk: {str(e)}"
@@ -59,6 +59,31 @@ class ProductService:
         except Exception as e:
             return f"Terjadi kesalahan saat menghapus produk: {str(e)}"
 
+    async def update_product_by_id(self, product_id: int, new_price: int, unit: Optional[str] = None, user_id: Optional[str] = None) -> str:
+        """
+        Tool untuk memperbarui harga produk berdasarkan ID.
+        """
+        try:
+            # Validate price
+            if new_price <= 0:
+                return "Harga harus lebih dari 0."
+
+            product = await self.supabase.update_product_by_id(
+                product_id=product_id,
+                price=new_price,
+                unit=unit,
+                user_id=user_id
+            )
+
+            if product:
+                unit_text = f" per {product.unit}" if product.unit else ""
+                return f"Harga {product.name} (ID: {product.id}) berhasil diperbarui menjadi {new_price:,} {unit_text}."
+            else:
+                return f"Produk dengan ID {product_id} tidak ditemukan."
+
+        except Exception as e:
+            return f"Terjadi kesalahan saat memperbarui produk: {str(e)}"
+
     async def search_products(self, query: str) -> str:
         """
         Tool untuk mencari produk berdasarkan query.
@@ -72,7 +97,7 @@ class ProductService:
             response_text = f"Ditemukan {len(products)} produk:\n\n"
             for product in products:
                 unit_text = f" per {product.unit}" if product.unit else ""
-                response_text += f"• {product.name}: {product.price:,} {unit_text}\n"
+                response_text += f"• {product.name} (ID: {product.id}): {product.price:,} {unit_text}\n"
 
             return response_text
 

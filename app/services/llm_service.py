@@ -63,6 +63,14 @@ Untuk mengubah harga atau menambah produk:
     "unit": "kg" (opsional)
 }
 
+Untuk mengubah harga berdasarkan ID:
+{
+    "action": "update_price_by_id",
+    "product_id": 123,
+    "price": 4000,
+    "unit": "kg" (opsional)
+}
+
 Untuk menghapus produk:
 {
     "action": "delete_product",
@@ -80,6 +88,8 @@ Hanya balas dengan JSON valid, tanpa penjelasan tambahan.
 Contoh:
 - "berapa harga minyak" -> {"action": "get_price", "product_name": "minyak"}
 - "ubah harga minyak 4000" -> {"action": "update_price", "product_name": "minyak", "price": 4000}
+- "update id 123 harga 4000" -> {"action": "update_price_by_id", "product_id": 123, "price": 4000}
+- "ubah id 45 harga 5000 per kg" -> {"action": "update_price_by_id", "product_id": 45, "price": 5000, "unit": "kg"}
 - "tambah gula 17000 per kg" -> {"action": "update_price", "product_name": "gula", "price": 17000, "unit": "kg"}
 - "hapus produk beras" -> {"action": "delete_product", "product_name": "beras"}
 - "cari produk minyak" -> {"action": "search_products", "query": "minyak"}"""
@@ -123,6 +133,12 @@ Contoh:
             price = action_data.get("price", 0)
             unit = action_data.get("unit")
             return await self.product_service.update_product_price(product_name, price, unit, user_id)
+
+        elif action == "update_price_by_id":
+            product_id = action_data.get("product_id", 0)
+            price = action_data.get("price", 0)
+            unit = action_data.get("unit")
+            return await self.product_service.update_product_by_id(product_id, price, unit, user_id)
 
         elif action == "delete_product":
             product_name = action_data.get("product_name", "")
@@ -189,5 +205,24 @@ Contoh:
                     if query:
                         return await self.product_service.search_products(query)
 
+        # Check for ID-based update queries
+        elif any(keyword in message_lower for keyword in ["id", "update id", "ubah id"]):
+            # Try to extract ID and price
+            id_match = re.search(r'id\s*(\d+)', message_lower)
+            price_match = re.search(r'\b(\d+)\b', message)
+
+            if id_match and price_match:
+                product_id = int(id_match.group(1))
+                price = int(price_match.group(1))
+
+                # Extract unit if present
+                unit_match = re.search(r'per (\w+)$', message_lower)
+                if unit_match:
+                    unit = unit_match.group(1)
+                else:
+                    unit = None
+
+                return await self.product_service.update_product_by_id(product_id, price, unit, user_id)
+
         # Default response
-        return "Maaf, saya tidak mengerti permintaan Anda. Silakan coba dengan format seperti:\n\n• 'berapa harga minyak'\n• 'ubah harga minyak 4000'\n• 'tambah gula 17000 per kg'\n• 'hapus produk beras'\n• 'cari produk miny'"
+        return "Maaf, saya tidak mengerti permintaan Anda. Silakan coba dengan format seperti:\n\n• 'berapa harga minyak'\n• 'ubah harga minyak 4000'\n• 'update id 123 harga 4000'\n• 'ubah id 45 harga 5000 per kg'\n• 'tambah gula 17000 per kg'\n• 'hapus produk beras'\n• 'cari produk minyak'\n\n• Semua produk sekarang menampilkan ID untuk memudahkan update"
