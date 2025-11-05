@@ -85,6 +85,7 @@ Contoh:
 - "ubah 123 25000" -> {"action": "update_price_by_id", "product_id": 123, "price": 25000}
 - "tambah gula 17000 per kg" -> {"action": "update_price", "product_name": "gula", "price": 17000, "unit": "kg"}
 - "tambah kopi 15000" -> {"action": "update_price", "product_name": "kopi", "price": 15000}
+- "tambah sempurna mild 20 harga 37000" -> {"action": "update_price", "product_name": "sempurna mild 20", "price": 37000, "unit": null}
 - "hapus 5" -> {"action": "delete_product_by_id", "product_id": 5}
 
 PENTING:
@@ -196,24 +197,35 @@ PENTING:
 
         # Command 3: tambah {product name} {price} per {unit}
         elif message_lower.startswith("tambah "):
-            # Try to extract price and product name
-            price_match = re.search(r'\b(\d+)\b', message)
-            if price_match:
-                price = int(price_match.group(1))
-                remaining = message_lower[7:].replace(str(price), "").strip()
-
-                # Extract unit if present
-                unit_match = re.search(r'per\s+(\w+)$', remaining)
-                if unit_match:
-                    unit = unit_match.group(1)
-                    product_name = remaining.replace(f"per {unit}", "").strip()
+            # Try to extract price after the word "harga" or the last number
+            harga_match = re.search(r'harga\s+(\d+)', message_lower)
+            if harga_match:
+                price = int(harga_match.group(1))
+                # Remove the "harga {price}" part
+                remaining = message_lower[7:].replace(f"harga {price}", "").strip()
+            else:
+                # Fallback: find the last number (assume it's the price)
+                numbers = re.findall(r'\b(\d+)\b', message)
+                if len(numbers) >= 2:
+                    price = int(numbers[-1])  # Use the last number
+                    remaining = message_lower[7:]
+                    # Remove the price from remaining text
+                    remaining = remaining.replace(str(price), "").strip()
                 else:
-                    unit = None
-                    product_name = remaining.strip()
+                    return "Format tambah salah. Contoh: 'tambah produk 37000' atau 'tambah produk harga 37000'"
 
-                if product_name:
-                    print(f"➕ Add command detected: Name={product_name}, Price={price}, Unit={unit}")
-                    return await self.product_service.update_product_price(product_name, price, unit, user_id)
+            # Extract unit if present
+            unit_match = re.search(r'per\s+(\w+)$', remaining)
+            if unit_match:
+                unit = unit_match.group(1)
+                product_name = remaining.replace(f"per {unit}", "").strip()
+            else:
+                unit = None
+                product_name = remaining.strip()
+
+            if product_name:
+                print(f"➕ Add command detected: Name={product_name}, Price={price}, Unit={unit}")
+                return await self.product_service.update_product_price(product_name, price, unit, user_id)
 
         # Command 4: hapus {id}
         elif message_lower.startswith("hapus "):
