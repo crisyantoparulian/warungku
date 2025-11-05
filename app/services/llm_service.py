@@ -90,9 +90,12 @@ Contoh:
 - "ubah harga minyak 4000" -> {"action": "update_price", "product_name": "minyak", "price": 4000}
 - "update id 123 harga 4000" -> {"action": "update_price_by_id", "product_id": 123, "price": 4000}
 - "ubah id 45 harga 5000 per kg" -> {"action": "update_price_by_id", "product_id": 45, "price": 5000, "unit": "kg"}
+- "id 78 harga 3000" -> {"action": "update_price_by_id", "product_id": 78, "price": 3000}
 - "tambah gula 17000 per kg" -> {"action": "update_price", "product_name": "gula", "price": 17000, "unit": "kg"}
 - "hapus produk beras" -> {"action": "delete_product", "product_name": "beras"}
-- "cari produk minyak" -> {"action": "search_products", "query": "minyak"}"""
+- "cari produk minyak" -> {"action": "search_products", "query": "minyak"}
+
+PENTING: Jika user menyebut "update id" atau "ubah id", itu berarti update berdasarkan ID produk, bukan nama produk."""
 
             response = self.client.chat.completions.create(
                 model="glm-4",
@@ -210,25 +213,38 @@ Contoh:
                     if query:
                         return await self.product_service.search_products(query)
 
-        # Check for ID-based update queries
-        elif any(keyword in message_lower for keyword in ["id", "update id", "ubah id"]):
-            # Try to extract ID and price
-            id_match = re.search(r'id\s*(\d+)', message_lower)
-            price_match = re.search(r'\b(\d+)\b', message)
+        # Check for ID-based update queries (check this first before other patterns)
+        id_patterns = [
+            r'update\s+id\s+(\d+)\s+harga\s+(\d+)',
+            r'ubah\s+id\s+(\d+)\s+harga\s+(\d+)',
+            r'id\s+(\d+)\s+harga\s+(\d+)',
+            r'update\s+id\s+(\d+)\s+(\d+)',
+            r'ubah\s+id\s+(\d+)\s+(\d+)'
+        ]
 
-            if id_match and price_match:
-                product_id = int(id_match.group(1))
-                price = int(price_match.group(1))
+        for pattern in id_patterns:
+            match = re.search(pattern, message_lower)
+            if match:
+                product_id = int(match.group(1))
+                price = int(match.group(2))
 
                 # Extract unit if present
-                unit_match = re.search(r'per (\w+)$', message_lower)
-                if unit_match:
-                    unit = unit_match.group(1)
-                else:
-                    unit = None
+                unit_match = re.search(r'per\s+(\w+)$', message_lower)
+                unit = unit_match.group(1) if unit_match else None
 
+                print(f"🎯 ID-based update detected: ID={product_id}, Price={price}, Unit={unit}")
                 return await self.product_service.update_product_by_id(product_id, price, unit, user_id)
+
+        # Check for price queries
+        if any(keyword in message_lower for keyword in ["berapa harga", "harga", "cari harga"]):
+            # Extract product name
+            for keyword in ["berapa harga", "harga", "cari harga"]:
+                if keyword in message_lower:
+                    product_name = message_lower.replace(keyword, "").strip()
+                    if product_name:
+                        return await self.product_service.get_product_price(product_name)
 
         # Default response
         print(f"🔄 Using fallback interpretation for: {message_lower}")
-        return "Maaf, saya tidak mengerti permintaan Anda. Silakan coba dengan format seperti:\n\n• 'berapa harga minyak'\n• 'ubah harga minyak 4000'\n• 'update id 123 harga 4000'\n• 'ubah id 45 harga 5000 per kg'\n• 'tambah gula 17000 per kg'\n• 'hapus produk beras'\n• 'cari produk minyak'\n\n• Semua produk sekarang menampilkan ID untuk memudahkan update"
+        print(f"⚠️  LLM failed to process the message correctly")
+        return "Maaf, saya tidak mengerti permintaan Anda. Silakan coba dengan format seperti:\n\n• 'berapa harga minyak'\n• 'ubah harga minyak 4000'\n• 'update id 123 harga 4000'\n• 'ubah id 45 harga 5000 per kg'\n• 'id 78 harga 3000'\n• 'tambah gula 17000 per kg'\n• 'hapus produk beras'\n• 'cari produk minyak'\n\n• Semua produk sekarang menampilkan ID untuk memudahkan update"
