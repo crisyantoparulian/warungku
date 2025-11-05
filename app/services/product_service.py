@@ -94,6 +94,25 @@ class ProductService:
         except Exception as e:
             return f"Terjadi kesalahan saat memperbarui produk: {str(e)}"
 
+    async def delete_product_by_id(self, product_id: int, user_id: Optional[str] = None) -> str:
+        """
+        Tool untuk menghapus produk berdasarkan ID.
+        """
+        try:
+            success = await self.supabase.delete_product_by_id(product_id, user_id)
+
+            if success:
+                result = f"Produk dengan ID {product_id} berhasil dihapus."
+                print(f"✅ ID-based delete result: {result}")
+                return result
+            else:
+                result = f"Produk dengan ID {product_id} tidak ditemukan."
+                print(f"❌ ID not found for delete: {result}")
+                return result
+
+        except Exception as e:
+            return f"Terjadi kesalahan saat menghapus produk: {str(e)}"
+
     async def search_products(self, query: str) -> str:
         """
         Tool untuk mencari produk berdasarkan query.
@@ -108,7 +127,7 @@ class ProductService:
             for product in products:
                 unit_text = f" per {product.unit}" if product.unit else ""
                 product_id = product.id if product.id else "Unknown"
-                response_text += f"• {product.name} (ID: {product_id}): {product.price:,} {unit_text}\n"
+                response_text += f"- [id:{product_id}] {product.name} harga {product.price:,}{unit_text}\n"
                 print(f"📦 Product in search: ID={product.id}, Name={product.name}")
 
             print(f"🔍 Search result: {response_text}")

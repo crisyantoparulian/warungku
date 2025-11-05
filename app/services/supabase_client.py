@@ -102,6 +102,49 @@ class SupabaseService:
             # Return a mock product for demo purposes
             return Product(id=1, name=product_name, price=price, unit=unit)
 
+    async def delete_product_by_id(self, product_id: int, user_id: Optional[str] = None) -> bool:
+        """Delete product by ID"""
+        try:
+            # Get product before deletion for audit
+            async with httpx.AsyncClient() as client:
+                get_response = await client.get(
+                    f"{self.supabase_url}/rest/v1/products",
+                    params={"id": f"eq.{product_id}", "limit": 1},
+                    headers=self.headers
+                )
+
+                if get_response.status_code != 200 or not get_response.json():
+                    return False
+
+                existing_product = Product(**get_response.json()[0])
+
+                # Delete the product
+                response = await client.delete(
+                    f"{self.supabase_url}/rest/v1/products",
+                    params={"id": f"eq.{product_id}"},
+                    headers=self.headers
+                )
+
+                if response.status_code in [200, 204]:
+                    # Log the deletion
+                    await self._log_audit(
+                        product_id=product_id,
+                        action_type="DELETE_BY_ID",
+                        details={
+                            "name": existing_product.name,
+                            "price": existing_product.price,
+                            "unit": existing_product.unit
+                        },
+                        requested_by=user_id
+                    )
+                    return True
+
+                return False
+
+        except Exception as e:
+            print(f"Error deleting product by ID: {e}")
+            return False
+
     async def delete_product(self, product_name: str, user_id: Optional[str] = None) -> bool:
         """Delete product by name"""
         try:
